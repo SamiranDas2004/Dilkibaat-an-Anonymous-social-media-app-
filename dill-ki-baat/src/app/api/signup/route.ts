@@ -1,7 +1,7 @@
 import dbConnect from "@/lib/dbConnect";
 import { NextRequest, NextResponse } from "next/server";
 import UserModel from "@/models/user";
-
+import bcrypt from 'bcrypt'
 export async function POST(request: NextRequest) {
   await dbConnect();
   try {
@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
     // Create a new user if not found
     const newUser = await UserModel.create({ username, email, password });
 
+    const hashedPassword=await bcrypt.hash(password,10);
+    newUser.password=hashedPassword;
+
+    newUser.save()
     return NextResponse.json({
       success: true,
       message: "User registered successfully",
