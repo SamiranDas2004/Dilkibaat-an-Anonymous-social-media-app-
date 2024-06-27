@@ -1,11 +1,11 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { Message } from "./message";
 
 export interface User extends Document {
   username: string;
   email: string;
   password: string;
   messages: mongoose.Types.ObjectId[];
+  followers: mongoose.Types.ObjectId[];
 }
 
 const UserSchema: Schema<User> = new Schema({
@@ -27,10 +27,14 @@ const UserSchema: Schema<User> = new Schema({
   messages: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Message'
-  }]
+  }],
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
 });
 
-// Ensure the model is only created once
 const UserModel = (mongoose.models.User as Model<User>) || mongoose.model<User>('User', UserSchema);
 
 export default UserModel;

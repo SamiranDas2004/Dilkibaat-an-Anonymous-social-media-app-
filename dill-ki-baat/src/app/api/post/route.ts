@@ -1,17 +1,18 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/user";
-import MessageModel from "@/models/message";
+import MessageModel from "@/models/messages";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   await dbConnect();
 
   try {
-    const { content, userId } = await request.json();
+    const requestBody = await request.json();
+    console.log("Request body:", requestBody);
+    const { content, userId } = requestBody;
 
-    // Find the user by ID
-    const findUser = await UserModel.findById(userId);
-
+    // Find the user by ID and populate messages
+    let findUser = await UserModel.findById(userId).populate('messages');
     if (!findUser) {
       return NextResponse.json({
         success: false,
@@ -22,23 +23,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a new message
-    const newMessage = new MessageModel({
+    const newMessage:any = MessageModel.create({
       user: userId,
       content: content
     });
 
     // Save the new message
-    const savedMessage:any = await newMessage.save();
+   
+    console.log("Saved message:", newMessage);
 
-    // Ensure findUser.messages is initialized and add the message ID
-    findUser.messages = findUser.messages || [];
-    findUser.messages.push(savedMessage._id);
+    // Add the new message ID to the user's messages array
+    findUser.messages.push(newMessage);
     await findUser.save();
+    
+
+    // Re-fetch the user with populated messages
+    findUser = await UserModel.findById(userId).populate('messages');
 
     return NextResponse.json({
       success: true,
       message: "Message created successfully",
-      data: savedMessage
+      data: findUser
     });
 
   } catch (error: any) {

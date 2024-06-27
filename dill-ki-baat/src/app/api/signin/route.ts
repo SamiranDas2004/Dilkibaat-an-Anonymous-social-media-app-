@@ -9,9 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     // Ensure request body is correctly parsed
     const { email, password } = await request.json();
-
   
-
     // Check if user exists
     const findUser = await UserModel.findOne({ email });
     if (!findUser) {
@@ -43,7 +41,8 @@ export async function POST(request: NextRequest) {
     // Successful login
     return NextResponse.json({
       success: true,
-      message: "Login successful"
+      message: "Login successful",
+      findUser
     });
 
   } catch (error: any) {
