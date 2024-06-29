@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if the follower is already in the user's followers array
-    const isUserAlreadyFollows = findUser.followers.some(follower => follower.equals(followerId));
+    const isUserAlreadyFollows = findUser.followers.includes(followerId);
 
     if (isUserAlreadyFollows) {
       return NextResponse.json({
