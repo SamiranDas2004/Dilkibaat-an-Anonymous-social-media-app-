@@ -2,6 +2,7 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/user";
 import bcrypt from 'bcrypt';
 import { NextResponse, NextRequest } from "next/server";
+import jwt from 'jsonwebtoken'
 
 export async function POST(request: NextRequest) {
   await dbConnect();
@@ -36,13 +37,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const token = jwt.sign({ userId: findUser._id , username:findUser.username , email:findUser.email}, "secretkey", { expiresIn: '6h' })
     console.log(`Login successful for email: ${email}`);
 
     // Successful login
     return NextResponse.json({
       success: true,
       message: "Login successful",
-      findUser
+      findUser,token
     });
 
   } catch (error: any) {
