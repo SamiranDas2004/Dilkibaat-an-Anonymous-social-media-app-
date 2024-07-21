@@ -6,7 +6,7 @@ export interface User extends Document {
   password: string;
   messages: mongoose.Types.ObjectId[];
   followers: mongoose.Types.ObjectId[];
-  avatar:string;
+  avatar: string;
 }
 
 const UserSchema: Schema<User> = new Schema({
@@ -34,8 +34,8 @@ const UserSchema: Schema<User> = new Schema({
     ref:'Follower',
     default: [],
   }],
-  avatar:{
-    type:String
+  avatar: {
+    type: String,
   }
 });
 

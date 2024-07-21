@@ -1,69 +1,64 @@
-// pages/api/register.ts
 import dbConnect from "@/lib/dbConnect";
-import type { NextApiRequest, NextApiResponse } from 'next'
-
+import { NextRequest, NextResponse } from "next/server";
 import UserModel from "@/models/user";
-import bcrypt from 'bcrypt';
-import nextConnect from 'next-connect';
-import { upload } from '@/app/helper/multerHelper';
-import { uploadOnCloudinary } from '@/app/helper/cloudinary';
+import bcrypt from 'bcrypt'
 
-// Disable Next.js body parsing, because multer will handle it
-export const config = {
-    api: {
-        bodyParser: false,
+
+// app/helper/multerHelper.ts
+import multer from 'multer';
+
+// Configure multer storage
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './files/my-uploads'); // Destination folder
     },
-};
-
-const handler = nextConnect<NextApiRequest, NextApiResponse>();
-
-// Middleware to handle file upload
-handler.use(upload.single('avatar'));
-
-// Export the POST function
-export default handler.post(async (req: NextApiRequest, res: NextApiResponse) => {
-    await dbConnect();
-    try {
-        const { username, email, password } = req.body;
-
-        const findUser = await UserModel.findOne({ username });
-
-        if (findUser) {
-            return res.status(400).json({
-                success: false,
-                message: "User is already registered",
-            });
-        }
-
-        let avatarUrl = null;
-        if (req.file) {
-            // Upload the avatar to Cloudinary
-            const uploadResult = await uploadOnCloudinary(req.file.path);
-            avatarUrl = uploadResult.secure_url; // Get the secure URL of the uploaded image
-        }
-
-        // Create a new user if not found
-        const newUser = new UserModel({ username, email, password });
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        newUser.password = hashedPassword;
-        if (avatarUrl) {
-            newUser.avatar = avatarUrl; // Save the avatar URL to the user model
-        }
-
-        await newUser.save();
-        return res.status(200).json({
-            success: true,
-            message: "User registered successfully",
-            user: newUser,
-        });
-    } catch (error: any) {
-        console.log(error.message);
-
-        return res.status(500).json({
-            success: false,
-            message: "An error occurred during registration",
-            error: error.message,
-        });
+    filename: function (req, file, cb) {
+        cb(null, file.originalname); // Use original file name
     }
 });
+
+// Export the multer upload instance
+export const upload = multer({ storage: storage });
+
+
+export async function POST(request: NextRequest) {
+  await dbConnect();
+  try {
+    const { username, email, password,avatar } = await request.json();
+
+    const findUser = await UserModel.findOne({ username });
+//ec456eb39f082796cc8768dbf958b04e971212c2
+    if (findUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User is already registered",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create a new user if not found
+    const newUser = await UserModel.create({ username, email, password });
+
+    const hashedPassword=await bcrypt.hash(password,10);
+    newUser.password=hashedPassword;
+
+    newUser.save()
+    return NextResponse.json({
+      success: true,
+      message: "User registered successfully",
+      user: newUser,
+    });
+  } catch (error:any) {
+    console.log(error.message);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: "An error occurred during registration",
+      },
+      { status: 500 }
+    );
+  }
+}
