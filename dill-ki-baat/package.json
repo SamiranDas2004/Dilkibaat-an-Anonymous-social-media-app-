@@ -11,6 +11,8 @@
   "dependencies": {
     "@edgestore/react": "^0.1.7",
     "@edgestore/server": "^0.1.7",
+    "@types/streamifier": "^0.1.2",
+    "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",
     "dotenv": "^16.4.5",
@@ -24,6 +26,7 @@
     "next-connect": "^0.12.2",
     "react": "^18",
     "react-dom": "^18",
+    "streamifier": "^0.1.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
