@@ -2,7 +2,6 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/user";
 import bcrypt from 'bcrypt';
 import { NextResponse, NextRequest } from "next/server";
-import jwt from 'jsonwebtoken'
 
 export async function POST(request: NextRequest) {
   await dbConnect();
@@ -10,11 +9,10 @@ export async function POST(request: NextRequest) {
   try {
     // Ensure request body is correctly parsed
     const { email, password } = await request.json();
-  
+
     // Check if user exists
     const findUser = await UserModel.findOne({ email });
     if (!findUser) {
-     
       return NextResponse.json({
         success: false,
         message: "Login failed: User not found"
@@ -23,29 +21,48 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check if password matches
-    console.log(findUser.password);
-
-    const checkPassword = await bcrypt.compare(password, findUser.password);
-    if (!checkPassword) {
-      console.log(`Incorrect password for email: ${email}`);
+    // Check if password exists and matches
+    if (findUser.password) {
+      const checkPassword = await bcrypt.compare(password, findUser.password);
+      if (!checkPassword) {
+        console.log(`Incorrect password for email: ${email}`);
+        return NextResponse.json({
+          success: false,
+          message: "Login failed: Incorrect password"
+        }, {
+          status: 401
+        });
+      }
+  
+      console.log(`Login successful for email: ${email}`);
+  
+      // Successful login
       return NextResponse.json({
-        success: false,
-        message: "Login failed: Incorrect password"
-      }, {
-        status: 401
+        success: true,
+        message: "Login successful",
+        data:findUser
       });
+  
+    }else{
+      const emailLogin= await UserModel.findOne({email})
+
+      if (!emailLogin) {
+        return NextResponse.json({
+          success: false,
+          message: "Login failed: User not found"
+        }, {
+          status: 401
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Login successful",
+        data:emailLogin
+      });
+
     }
 
-    const token = jwt.sign({ userId: findUser._id , username:findUser.username , email:findUser.email}, "secretkey", { expiresIn: '6h' })
-    console.log(`Login successful for email: ${email}`);
-
-    // Successful login
-    return NextResponse.json({
-      success: true,
-      message: "Login successful",
-      findUser,token
-    });
 
   } catch (error: any) {
     console.error("Error during login:", error);
@@ -53,6 +70,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       message: "An error occurred during login"
+   
     }, {
       status: 500
     });

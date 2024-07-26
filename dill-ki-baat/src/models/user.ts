@@ -7,6 +7,7 @@ export interface User extends Document {
   messages: mongoose.Types.ObjectId[];
   followers: mongoose.Types.ObjectId[];
   avatar: string;
+  gender:string;
   photos: string[]; // Updated to store an array of photo URLs
 }
 
@@ -38,6 +39,9 @@ const UserSchema: Schema<User> = new Schema({
   }],
   avatar: {
     type: String,
+  },
+  gender:{
+    type:String
   }
 });
 

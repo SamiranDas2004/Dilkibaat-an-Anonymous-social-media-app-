@@ -1,37 +1,41 @@
-// Your sign-in component
 'use client';
 
 import { useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function Component() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [data, setData] = useState({
+    email: '',
+    password: ''
+  });
   const [error, setError] = useState<string | null>(null);
 
   const handleCredentialsSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    try {
+      const response = await axios.post("http://localhost:3000/api/signin", {
+        email: data.email,
+        password: data.password
+      });
+console.log(data.email, data.password);
 
-    const signInResponse = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
 
-    if (signInResponse && !signInResponse.error) {
-      router.push('/timeline');
-    } else {
-      console.log('Error: ', signInResponse);
-      setError('Your Email or Password is wrong!');
+      if (response.status === 200) {
+        // Assume response contains session data
+        router.replace('/photoupload');
+      }
+    } catch (err) {
+      setError('Sign-in failed. Please check your credentials and try again.');
     }
   };
 
   if (session) {
-  router.replace('/photoupload')
+    router.replace('/photoupload');
   }
 
   return (
@@ -50,8 +54,8 @@ export default function Component() {
           type="email"
           name="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={data.email}
+          onChange={(e) => setData({ ...data, email: e.target.value })}
           required
           className="w-full px-4 py-4 mb-4 border border-gray-700 bg-gray-800 rounded-md text-white"
         />
@@ -60,9 +64,9 @@ export default function Component() {
           type="password"
           name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
+          value={data.password}
+          onChange={(e) => setData({ ...data, password: e.target.value })}
+          
           className="w-full px-4 py-4 mb-4 border border-gray-700 bg-gray-800 rounded-md text-white"
         />
 

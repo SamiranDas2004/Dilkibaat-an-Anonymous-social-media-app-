@@ -13,11 +13,9 @@ const PhotoUpload = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!session) {
-      router.replace('/signin');
-    }
-  }, [session, router]);
+
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
